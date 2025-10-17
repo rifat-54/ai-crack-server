@@ -12,12 +12,16 @@ app.get('/test-ai',async(req,res)=>{
 //  const result=await model.generateContent(prompt)
 //  console.log(result);
 
+const prompt=req.query?.prompt;
+
 
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
-    contents: "what is go language",
+    contents:prompt,
   });
   console.log(response.text);
+
+  res.send(response)
 })
 
 
