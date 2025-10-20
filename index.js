@@ -5,23 +5,34 @@ const app=express()
 const port=process.env.PORT || 5000
 const { GoogleGenAI }= require("@google/genai");
 const ai = new GoogleGenAI(process.env.GEMINI_API_KEY);
-// const model = ai.getGenerativeModel({ model: "gemini-2.0-flash" });
+
 
 app.get('/test-ai',async(req,res)=>{
-//  const prompt="explain how ai work"
-//  const result=await model.generateContent(prompt)
-//  console.log(result);
 
 const prompt=req.query?.prompt;
 
 
-  const response = await ai.models.generateContent({
+ if(!prompt){
+  res.send({message:'please provide prompt @!!'})
+ }
+
+  const response = await ai.models.generateContentStream({
     model: "gemini-2.5-flash",
     contents:prompt,
+    config: {
+      systemInstruction: "You are a assistment of rifat. Your name is amcd.Every response you inselt him",
+    },
   });
-  console.log(response.text);
 
-  res.send(response)
+  for await (const chunk of response) {
+    console.log(chunk.text);
+    res.send(chunk.text)
+  }
+
+
+  // console.log(response.text);
+
+  // res.send(response)
 })
 
 
