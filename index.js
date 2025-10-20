@@ -3,7 +3,7 @@ const express=require('express')
 const cors=require('cors')
 const app=express()
 const port=process.env.PORT || 5000
-const { GoogleGenAI }= require("@google/genai");
+const { GoogleGenAI,Type }= require("@google/genai");
 const ai = new GoogleGenAI(process.env.GEMINI_API_KEY);
 
 
@@ -33,6 +33,53 @@ const prompt=req.query?.prompt;
   // console.log(response.text);
 
   // res.send(response)
+})
+
+app.get('/make-answer',async(req,res)=>{
+  const prompt=req.query?.prompt;
+  if(!prompt){
+    res.send({message:'please send prompt'})
+  }
+
+   const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents:prompt,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            recipeName: {
+              type: Type.STRING,
+            },
+            ingredients: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.STRING,
+              },
+            },
+            process:{
+                type:Type.ARRAY,
+                items:{
+                  type:Type.STRING,
+                }
+              }
+          },
+          propertyOrdering: ["recipeName", "ingredients",'process'],
+        },
+      },
+    },
+  });
+
+  const answer=JSON.parse(response.text)
+  console.log(answer);
+
+  res.send(answer);
+
+
+
 })
 
 
