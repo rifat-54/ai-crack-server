@@ -3,90 +3,92 @@ const express=require('express')
 const cors=require('cors')
 const app=express()
 const port=process.env.PORT || 5000
+// const fetch = require("node-fetch");
 const { GoogleGenAI,Type }= require("@google/genai");
-const ai = new GoogleGenAI(process.env.GEMINI_API_KEY);
+const ai = new GoogleGenAI({apiKey:process.env.GEMINI_API_KEY});
+// const model=ai.getGenerativeModel({ model: "gemini-2.5-flash"});
 
 
-app.get('/test-ai',async(req,res)=>{
+// app.get('/test-ai',async(req,res)=>{
 
-const prompt=req.query?.prompt;
-
-
- if(!prompt){
-  res.send({message:'please provide prompt @!!'})
- }
-
-  const response = await ai.models.generateContentStream({
-    model: "gemini-2.5-flash",
-    contents:prompt,
-    config: {
-      systemInstruction: "You are a assistment of rifat. Your name is amcd.Every response you inselt him",
-    },
-  });
-
-  for await (const chunk of response) {
-    console.log(chunk.text);
-    res.send(chunk.text)
-  }
+// const prompt=req.query?.prompt;
 
 
-  // console.log(response.text);
+//  if(!prompt){
+//   res.send({message:'please provide prompt @!!'})
+//  }
 
-  // res.send(response)
-})
+//   const response = await ai.models.generateContentStream({
+//     model: "gemini-2.5-flash",
+//     contents:prompt,
+//     config: {
+//       systemInstruction: "You are a assistment of rifat. Your name is amcd.Every response you inselt him",
+//     },
+//   });
 
-app.get('/make-answer',async(req,res)=>{
-  const prompt=req.query?.prompt;
-  if(!prompt){
-    res.send({message:'please send prompt'})
-  }
-
-   const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents:prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            recipeName: {
-              type: Type.STRING,
-            },
-            ingredients: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.STRING,
-              },
-            },
-            process:{
-                type:Type.ARRAY,
-                items:{
-                  type:Type.STRING,
-                }
-              }
-          },
-          propertyOrdering: ["recipeName", "ingredients",'process'],
-        },
-      },
-    },
-  });
-
-  const answer=JSON.parse(response.text)
-  console.log(answer);
-
-  res.send(answer);
+//   for await (const chunk of response) {
+//     console.log(chunk.text);
+//     res.send(chunk.text)
+//   }
 
 
+//   // console.log(response.text);
 
-})
+//   // res.send(response)
+// })
+
+// app.get('/make-answer',async(req,res)=>{
+//   const prompt=req.query?.prompt;
+//   if(!prompt){
+//     res.send({message:'please send prompt'})
+//   }
+
+//    const response = await ai.models.generateContent({
+//     model: "gemini-2.5-flash",
+//     contents:prompt,
+//     config: {
+//       responseMimeType: "application/json",
+//       responseSchema: {
+//         type: Type.ARRAY,
+//         items: {
+//           type: Type.OBJECT,
+//           properties: {
+//             recipeName: {
+//               type: Type.STRING,
+//             },
+//             ingredients: {
+//               type: Type.ARRAY,
+//               items: {
+//                 type: Type.STRING,
+//               },
+//             },
+//             process:{
+//                 type:Type.ARRAY,
+//                 items:{
+//                   type:Type.STRING,
+//                 }
+//               }
+//           },
+//           propertyOrdering: ["recipeName", "ingredients",'process'],
+//         },
+//       },
+//     },
+//   });
+
+//   const answer=JSON.parse(response.text)
+//   console.log(answer);
+
+//   res.send(answer);
+
+
+
+// })
 
 
 // generate text from image
 
 app.get('/text-from-image',async(req,res)=>{
-  const imgurl=req.query.img;
+  const imgurl=req?.query?.img;
   if(!imgurl){
     res.send({message:'please provide img url'})
   }
@@ -104,8 +106,57 @@ app.get('/text-from-image',async(req,res)=>{
       mimeType:'image/jpeg'
     }
    }
-   const prompt='Extract all text from this image'
-   const result=await 
+  //  const prompt='Extract all text from this image'
+  //  const result=await model.generateContent([prompt,image])
+//   const prompt = "Extract all text from this image.";
+// const result = await model.generateContent({
+//   model: "gemini-2.5-flash",
+//   contents: [
+//     {
+//       role: "user",
+//       parts: [
+//         { text: prompt },
+//         {
+//           inlineData: {
+//             data: base64Image,
+//             mimeType: "image/jpeg",
+//           },
+//         },
+//       ],
+//     },
+//   ],
+// });
+
+const prompt = "Extract all text from this image.";
+
+const result = await ai.models.generateContent({
+  model: "gemini-2.5-flash",
+  contents: [
+    {
+      role: "user",
+      parts: [
+        { text: prompt },
+        {
+          inlineData: {
+            data: base64Image,
+            mimeType: "image/png",
+          },
+        },
+      ],
+    },
+  ],
+});
+
+const answer = result.response.text();
+console.log(answer);
+res.send({ text: answer });
+
+
+  
+  //  const answer=(result.response.text());
+  //  res.send(answer)
+
+
 })
 
 
