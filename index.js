@@ -83,6 +83,31 @@ app.get('/make-answer',async(req,res)=>{
 })
 
 
+// generate text from image
+
+app.get('/text-from-image',async(req,res)=>{
+  const imgurl=req.query.img;
+  if(!imgurl){
+    res.send({message:'please provide img url'})
+  }
+
+ 
+  // fatch image and convert  base64
+
+  const response=await fetch(imgurl);
+  const buffer=await response.arrayBuffer();
+  const base64Image=Buffer.from(buffer).toString("base64")
+
+   const image={
+    inlineData:{
+      data:base64Image,
+      mimeType:'image/jpeg'
+    }
+   }
+   const prompt='Extract all text from this image'
+   const result=await 
+})
+
 
 // defult route
 
