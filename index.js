@@ -88,74 +88,37 @@ const ai = new GoogleGenAI({apiKey:process.env.GEMINI_API_KEY});
 // generate text from image
 
 app.get('/text-from-image',async(req,res)=>{
-  const imgurl=req?.query?.img;
-  if(!imgurl){
+  const imageUrl=req?.query?.img;
+  if(!imageUrl){
     res.send({message:'please provide img url'})
   }
 
- 
-  // fatch image and convert  base64
+  console.log('imgurl->',imageUrl);
 
-  const response=await fetch(imgurl);
-  const buffer=await response.arrayBuffer();
-  const base64Image=Buffer.from(buffer).toString("base64")
+  const response = await fetch(imageUrl);
 
-   const image={
-    inlineData:{
-      data:base64Image,
-      mimeType:'image/jpeg'
-    }
-   }
-  //  const prompt='Extract all text from this image'
-  //  const result=await model.generateContent([prompt,image])
-//   const prompt = "Extract all text from this image.";
-// const result = await model.generateContent({
-//   model: "gemini-2.5-flash",
-//   contents: [
-//     {
-//       role: "user",
-//       parts: [
-//         { text: prompt },
-//         {
-//           inlineData: {
-//             data: base64Image,
-//             mimeType: "image/jpeg",
-//           },
-//         },
-//       ],
-//     },
-//   ],
-// });
+  if(!response.ok){
+    throw new Error(`failed to fetch image: ${response.statusText}`)
+  }
+  const imageArrayBuffer = await response.arrayBuffer();
+  const base64ImageData = Buffer.from(imageArrayBuffer).toString('base64');
 
-const prompt = "Extract all text from this image.";
-
-const result = await ai.models.generateContent({
-  model: "gemini-2.5-flash",
-  contents: [
+  const result = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [
     {
-      role: "user",
-      parts: [
-        { text: prompt },
-        {
-          inlineData: {
-            data: base64Image,
-            mimeType: "image/png",
-          },
-        },
-      ],
+      inlineData: {
+        mimeType: 'image/png',
+        data: base64ImageData,
+      },
     },
+    { text: "Caption this image." }
   ],
-});
-
-const answer = result.response.text();
-console.log(answer);
-res.send({ text: answer });
+  });
+  console.log(result.text);
 
 
-  
-  //  const answer=(result.response.text());
-  //  res.send(answer)
-
+res.send(result?.text)
 
 })
 
